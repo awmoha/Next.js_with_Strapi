@@ -5,6 +5,7 @@ import { store } from "../redux/store";
 import { ChakraProvider } from "@chakra-ui/react";
 import Layout from "Layout/Layout";
 import RootLayout from "./layout";
+import CheckoutPage from "components/CheckoutPage";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

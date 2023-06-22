@@ -16,15 +16,16 @@ import {
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "redux/store";
-import { fetchData } from "services/api";
-import { appConfig } from "services/config";
+import { fetchDataFromFirebase } from "services/api";
 import AboutUsComponent from "./AboutUs";
 import { addToCart, removeFromCart } from "redux/cartSlice";
 import { Item } from "interfaces/interfaces";
 
+import { removeFromFirebase, saveToFirebase } from "misc/firebaseUtils";
+
 const Home = () => {
   const dispatch = useDispatch();
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState<boolean>(false);
   const [showItemIndex, setShowItemIndex] = useState<number | null>(null);
 
   const showAddAndRemove = (index: number) => {
@@ -32,25 +33,21 @@ const Home = () => {
     setShow(!show);
   };
 
-  const { data, isLoading, error } = useSelector(
-    (state: RootState) => state.data
-  );
-
+  const { data } = useSelector((state: RootState) => state.data);
   const { cartItems } = useSelector((state: RootState) => state.cart);
+
   const handleAddToCart = (item: Item) => {
     dispatch(addToCart(item));
+    saveToFirebase(item);
   };
   const handleRemoveFromCart = (item: Item) => {
     dispatch(removeFromCart(item));
+    removeFromFirebase(item);
   };
 
   useEffect(() => {
-    dispatch(fetchData() as any);
+    dispatch(fetchDataFromFirebase() as any);
   }, [dispatch]);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <>
@@ -70,16 +67,16 @@ const Home = () => {
                 <CardBody>
                   <Box h="30vh" overflow="hidden">
                     <Image
-                      src={`${appConfig.apiURL}${item.attributes.imageUrl?.data[0]?.attributes?.url}`}
+                      src={item.imageUrl}
                       alt="Green double couch with wooden legs"
                       borderRadius="lg"
                     />
                   </Box>
                   <Stack mt="6" spacing="3">
-                    <Heading size="md">{item.attributes.name}</Heading>
-                    <Text>{item.attributes.desc}</Text>
+                    <Heading size="md">{item.name}</Heading>
+                    <Text>{item.desc}</Text>
                     <Text color="blue.600" fontSize="2xl">
-                      ${item.attributes.price}
+                      ${item.price}
                     </Text>
                   </Stack>
                 </CardBody>
@@ -110,6 +107,7 @@ const Home = () => {
             </GridItem>
           ))}
       </Flex>
+
       <AboutUsComponent />
     </>
   );

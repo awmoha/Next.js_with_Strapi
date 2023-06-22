@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 import { DataState } from "interfaces/interfaces";
-import { fetchData } from "services/api";
+import { fetchDataFromFirebase } from "services/api";
 
 const initialState: DataState = {
   data: [],
@@ -15,14 +15,14 @@ const dataSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchData.pending, (state) => {
+      .addCase(fetchDataFromFirebase.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(fetchData.fulfilled, (state, action) => {
+      .addCase(fetchDataFromFirebase.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.data = action.payload.data;
+        state.data = action.payload;
       })
-      .addCase(fetchData.rejected, (state, action) => {
+      .addCase(fetchDataFromFirebase.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error?.message || null;
       });

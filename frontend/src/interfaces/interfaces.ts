@@ -14,16 +14,14 @@ export interface DataState {
 }
 
 export interface Item {
-  id: number;
-  attributes: {
-    name: string;
-    desc: string;
-    price: number;
-    imageUrl: any;
-    createdAt: string;
-    updatedAt: string;
-    publishedAt: string;
-  };
+  id?: number;
+  name: string;
+  desc: string;
+  price: number;
+  imageUrl: any;
+  createdAt?: string;
+  updatedAt?: string;
+  publishedAt?: string;
 }
 
 export interface CartState {

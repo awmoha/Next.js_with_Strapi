@@ -7,6 +7,11 @@ import { useEffect } from "react";
 function RootLayout({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
   const email = useSelector((state: RootState) => state.auth.email);
+  const cartItemsNumber = useSelector(
+    (state: RootState) => state.cart.cartItemsNumber
+  );
+  const { cartItems } = useSelector((state: RootState) => state.cart);
+
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -28,6 +33,7 @@ function RootLayout({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  
   return <>{children}</>;
 }
 

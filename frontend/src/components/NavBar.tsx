@@ -39,13 +39,15 @@ import {
 } from "react-icons/fi";
 import { IconType } from "react-icons";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
-import { ReactText } from "react";
+import { ReactText, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "redux/store";
 import { handleLogout } from "variables/AuthHanlers";
 import { useRouter } from "next/router";
-import { selectCartItems } from "redux/cartSlice";
+import { selectCartItems, setCartItemsLength } from "redux/cartSlice";
 import { AiFillShopping } from "react-icons/ai";
+import { collection, getDocs } from "firebase/firestore";
+import { firestore } from "../../firebaseConfig";
 
 interface LinkItemProps {
   name: string;
@@ -63,8 +65,8 @@ export default function SidebarWithHeader({
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
   const LinkItems: Array<LinkItemProps> = [
     { name: "Home", icon: FiHome, path: "/" },
-    { name: "Trending", icon: FiTrendingUp, path: "/trending" },
-    { name: "Explore", icon: FiCompass, path: "/explore" },
+    { name: "Admin", icon: FiTrendingUp, path: "/admin" },
+    { name: "Checkout", icon: FiCompass, path: "/checkout" },
     { name: "Favourites", icon: FiStar, path: "/favourites" },
     { name: "Settings", icon: FiSettings, path: "/settings" },
     {
@@ -185,7 +187,24 @@ export const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
     (state: RootState) => state.auth.firstTwoLetters
   );
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
-  const cartItems = useSelector(selectCartItems);
+
+  const fetchCartItemsLength = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, "checkout"));
+      const cartItemsLength = querySnapshot.size; // Get the size of the query snapshot
+      // Dispatch an action to set the cartItemsLength in the Redux store
+      dispatch(setCartItemsLength(cartItemsLength));
+    } catch (error) {
+      console.error("Failed to fetch cart items length from Firebase:", error);
+    }
+  };
+  const selectCartItemsLength = (state: RootState) => state.cart.cartItemsNumber;
+  const cartItemsLength = useSelector(selectCartItemsLength);
+
+
+  useEffect(() => {
+    fetchCartItemsLength();
+  }, []);
 
   return (
     <Flex
@@ -218,12 +237,12 @@ export const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
 
       <HStack spacing={{ base: "0", md: "6" }}>
         <HStack>
-          {cartItems > 0 && (
+          {cartItemsLength > 0 && (
             <Flex
               alignItems="center"
               justifyContent={{ base: "space-between", md: "flex-end" }}
             >
-              <Badge>{cartItems} </Badge> <AiFillShopping />
+              <Badge>{cartItemsLength} </Badge> <AiFillShopping />
             </Flex>
           )}
         </HStack>

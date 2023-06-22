@@ -23,10 +23,18 @@ const cartSlice = createSlice({
         state.cartItemsNumber = state.cartItems.length;
       }
     },
+    setCartItems: (state, action: PayloadAction<Item[]>) => {
+      state.cartItems = action.payload;
+      state.cartItemsNumber = action.payload.length;
+    },
+    setCartItemsLength: (state, action: PayloadAction<number>) => {
+      state.cartItemsNumber = action.payload;
+    },
   },
 });
 
-export const { addToCart, removeFromCart } = cartSlice.actions;
+export const { addToCart, removeFromCart, setCartItems, setCartItemsLength } =
+  cartSlice.actions;
 
 export const selectCartItems = (state: RootState) => state.cart.cartItemsNumber;
 
