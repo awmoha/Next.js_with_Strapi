@@ -1,10 +1,7 @@
 import {
   Box,
-  Button,
-  ButtonGroup,
   Card,
   CardBody,
-  CardFooter,
   Divider,
   Flex,
   GridItem,
@@ -18,32 +15,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "redux/store";
 import { fetchDataFromFirebase } from "services/api";
 import AboutUsComponent from "./AboutUs";
-import { addToCart, removeFromCart } from "redux/cartSlice";
-import { Item } from "interfaces/interfaces";
 
-import { removeFromFirebase, saveToFirebase } from "misc/firebaseUtils";
+import CartItemActions from "misc/AddAndRemoveCard";
 
 const Home = () => {
   const dispatch = useDispatch();
-  const [show, setShow] = useState<boolean>(false);
-  const [showItemIndex, setShowItemIndex] = useState<number | null>(null);
-
-  const showAddAndRemove = (index: number) => {
-    setShowItemIndex(index);
-    setShow(!show);
-  };
-
   const { data } = useSelector((state: RootState) => state.data);
-  const { cartItems } = useSelector((state: RootState) => state.cart);
-
-  const handleAddToCart = (item: Item) => {
-    dispatch(addToCart(item));
-    saveToFirebase(item);
-  };
-  const handleRemoveFromCart = (item: Item) => {
-    dispatch(removeFromCart(item));
-    removeFromFirebase(item);
-  };
 
   useEffect(() => {
     dispatch(fetchDataFromFirebase() as any);
@@ -81,28 +58,7 @@ const Home = () => {
                   </Stack>
                 </CardBody>
                 <Divider />
-                <CardFooter>
-                  <ButtonGroup spacing="2">
-                    <Button variant="solid" colorScheme="blue">
-                      Buy now
-                    </Button>
-                    <Button
-                      onClick={() => showAddAndRemove(index)}
-                      variant="ghost"
-                      colorScheme="blue"
-                    >
-                      Add to cart
-                    </Button>
-                    {show && showItemIndex === index && (
-                      <Flex gap={3}>
-                        <Button onClick={() => handleRemoveFromCart(item)}>
-                          -
-                        </Button>
-                        <Button onClick={() => handleAddToCart(item)}>+</Button>
-                      </Flex>
-                    )}
-                  </ButtonGroup>
-                </CardFooter>
+                <CartItemActions item={item} index={index}  />
               </Card>
             </GridItem>
           ))}

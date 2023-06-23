@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Box,
@@ -9,17 +9,26 @@ import {
   Heading,
   Image,
   Button,
+  Spacer,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
 } from "@chakra-ui/react";
-import { AiFillShopping } from "react-icons/ai";
+import { AiFillDelete } from "react-icons/ai";
 import { RootState } from "redux/store";
-import { getDocs, collection } from "firebase/firestore";
+import { getDocs, collection, deleteDoc, doc } from "firebase/firestore";
 import { firestore } from "../../firebaseConfig";
-import { selectCartItems, setCartItems } from "redux/cartSlice";
+import { setCartItems } from "redux/cartSlice";
 import { Item } from "interfaces/interfaces";
 
 const CheckoutPage = () => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state: RootState) => state.cart.cartItems);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const leastDestructiveRef = useRef(null);
 
   useEffect(() => {
     const fetchCartItems = async () => {
@@ -35,9 +44,45 @@ const CheckoutPage = () => {
     fetchCartItems();
   }, [dispatch]);
 
+  const handleDeleteConfirmation = (item: Item) => {
+    setSelectedItem(item);
+    setIsConfirmationOpen(true);
+  };
+
+  const handleDeleteItem = async () => {
+    if (selectedItem) {
+      try {
+        const querySnapshot = await getDocs(collection(firestore, "checkout"));
+        const documents = querySnapshot.docs;
+
+        for (const document of documents) {
+          const data = document.data() as Item;
+          if (data.id === selectedItem.id) {
+            await deleteDoc(doc(firestore, "checkout", document.id));
+            const updatedItems = cartItems.filter(
+              (item: Item) => item.id !== selectedItem.id
+            );
+            dispatch(setCartItems(updatedItems));
+
+            window.location.reload();
+
+            break;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to remove item from Firebase:", error);
+      }
+    }
+
+    setSelectedItem(null);
+    setIsConfirmationOpen(false);
+  };
+
   const totalPrice = cartItems.reduce((total: any, item: any) => {
     return total + item.price;
   }, 0);
+
+  
   return (
     <Grid
       ml={{ base: 0, md: 60 }}
@@ -57,8 +102,8 @@ const CheckoutPage = () => {
             Checkout
           </Heading>
         </Flex>
-        {cartItems.map((item: any) => (
-          <Flex key={item.id} alignItems="center" mt="5vh" mb="4vh">
+        {cartItems.map((item: any, index: any) => (
+          <Flex key={index} alignItems="center" mt="5vh" mb="4vh">
             <Box
               bg="gray.200"
               w="5vw"
@@ -73,7 +118,13 @@ const CheckoutPage = () => {
                 alt="Dan Abramov"
               />
             </Box>
-            <Text color="white">{item.name}</Text>
+            <Box>
+              <Text color="white">{item.name}</Text>
+            </Box>
+            <Spacer />
+            <Box onClick={() => handleDeleteConfirmation(item)}>
+              <AiFillDelete />
+            </Box>{" "}
           </Flex>
         ))}
         <Text fontSize="lg" fontWeight="bold" mt={4}>
@@ -81,6 +132,27 @@ const CheckoutPage = () => {
         </Text>
       </Box>
       <Button>Checkout</Button>
+      <AlertDialog
+        leastDestructiveRef={leastDestructiveRef}
+        isOpen={isConfirmationOpen}
+        onClose={() => setIsConfirmationOpen(false)}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Are you sure you want to delete this item?
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button onClick={() => setIsConfirmationOpen(false)}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDeleteItem} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Grid>
   );
 };

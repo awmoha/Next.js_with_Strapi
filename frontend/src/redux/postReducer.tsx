@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 interface PostState {
+  id: string
   name: string;
   description: string;
   price: number;
@@ -7,6 +8,7 @@ interface PostState {
 }
 
 const initialState: PostState = {
+  id:'',
   name: "",
   description: "",
   price: 0,
@@ -16,6 +18,9 @@ const postSlice = createSlice({
   name: "post",
   initialState,
   reducers: {
+    setId: (state, action: PayloadAction<string>) => {
+      state.id = action.payload;
+    },
     setName: (state, action: PayloadAction<string>) => {
       state.name = action.payload;
     },
@@ -29,6 +34,7 @@ const postSlice = createSlice({
       state.imageUrl = action.payload;
     },
     resetPost: (state) => {
+      state.id =  "",
       state.name = "";
       state.description = "";
       state.price = 0;
@@ -36,7 +42,7 @@ const postSlice = createSlice({
     },
   },
 });
-export const { setName, setDescription, setPrice, setImage, resetPost } =
+export const { setId, setName, setDescription, setPrice, setImage, resetPost } =
   postSlice.actions;
 
 export default postSlice.reducer;

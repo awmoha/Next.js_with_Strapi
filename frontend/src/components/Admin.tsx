@@ -12,17 +12,31 @@ import {
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setDescription, setImage, setName, setPrice } from "redux/postReducer";
+import {
+  resetPost,
+  setDescription,
+  setId,
+  setImage,
+  setName,
+  setPrice,
+} from "redux/postReducer";
 import { RootState } from "redux/store";
 import { firestore } from "../../firebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, getDoc } from "firebase/firestore";
 
 const Admin = () => {
   const dispatch = useDispatch();
-  const { name, description, price, imageUrl } = useSelector(
+  const { id, name, description, price, imageUrl } = useSelector(
     (state: RootState) => state.post
   );
+
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
+
+  function generateRandomId() {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 10);
+    return `${timestamp}_${random}`;
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -38,13 +52,20 @@ const Admin = () => {
   };
   const handleAddProduct = async () => {
     try {
-      const productData = { name, description, price, imageUrl };
+      const id = generateRandomId(); // Generera ett slumpmässigt ID
+      const productData = {
+        id,
+        name,
+        description,
+        price,
+        imageUrl,
+      };
       const collectionRef = collection(firestore, "posts");
       await addDoc(collectionRef, productData);
-      dispatch(setName(""));
-      dispatch(setDescription(""));
-      dispatch(setPrice(0));
-      dispatch(setImage(""));
+
+      // Reset the form
+      dispatch(resetPost());
+
       setShowSuccessMessage(true);
       setTimeout(() => {
         setShowSuccessMessage(false);

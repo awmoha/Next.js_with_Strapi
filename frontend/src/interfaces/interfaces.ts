@@ -28,3 +28,8 @@ export interface CartState {
   cartItems: any;
   cartItemsNumber: number;
 }
+
+export interface FavState {
+  FavItems: Item[];
+}
+
